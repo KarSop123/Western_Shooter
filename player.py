@@ -1,70 +1,84 @@
 import pygame
 from pygame.math import Vector2 as vector
-from os import walk
+from entity import Entity
 
-class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, path, collision_sprites):
-        super().__init__(groups)
-        self.import_assets(path)
-        #self.frame_index = 0
-        #self.status = 'down_idle'
+class Player(Entity):
+    def __init__(self, pos, groups, path, collision_sprites, create_bullet):
+        super().__init__(pos, groups, path, collision_sprites)
 
-        self.image = pygame.surface.Surface((100, 100))
-        self.image.fill((255, 255, 255))
-        self.rect = self.image.get_rect(topleft = pos)
+        self.create_bullet = create_bullet
+        self.bullet_shoot = False
 
-        #float based movement
-        self.pos = vector(self.rect.center)
-        self.direction = vector()
-        self.speed = 200
+    def get_status(self):
+        #idle
+        if self.direction.y == 0 and self.direction.x == 0:
+            self.status = self.status.split('_')[0] + '_idle'
 
-        #collisions
-        self.hitbox = self.rect.inflate(0, -self.rect.height / 2)
-        self.collision_sprites = collision_sprites
-        print(path)
-
-    def import_assets(self, path):
-        self. animations = {}
-
-        for index, folder in enumerate(walk(path)):
-            if index == 0:
-                for name in folder[1]:
-                    self.animations[name] = []
-            else:
-                for file_name in sorted(folder[2], key = lambda string: int(string.split('.')[0])):
-                    path = folder[0].replace('\\', '/') + '/' + file_name
-                    surf = pygame.image.load(path).convert_alpha()
-                    key = folder[0].split('\\')[1]
-                    self.animations[key].append(surf)
-
-        print(self.animations)
+        #attacking
+        if self.attacking:
+            self.status = self.status.split('_')[0] + '_attack'
 
     def input(self):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:
-            self.direction.x = -1
-        if keys[pygame.K_d]:
-            self.direction.x = 1
-        if keys[pygame.K_w]:
-            self.direction.y = -1
-        if keys[pygame.K_s]:
-            self.direction.y = 1
 
-    def move(self, dt):
-        if self.direction.magnitude() != 0:
-            self.direction = self.direction.normalize()
+        if not self.attacking:
+            if keys[pygame.K_a]:
+                self.direction.x = -1
+                self.status = 'left'
+            elif keys[pygame.K_d]:
+                self.direction.x = 1
+                self.status = 'right'
+            else:
+                self.direction.x = 0
 
-            #horizontal movement
-            self.pos.x += self.direction.x * self.speed * dt
-            self.hitbox.centerx = round(self.pos.x)
-            self.rect.centerx = self.hitbox.centerx
+            if keys[pygame.K_w]:
+                self.direction.y = -1
+                self.status = 'up'
+            elif keys[pygame.K_s]:
+                self.direction.y = 1
+                self.status = 'down'
+            else:
+                self.direction.y = 0
 
-            #vertical movement
-            self.pos.y += self.direction.y * self.speed * dt
-            self.hitbox.centery = round(self.pos.y)
-            self.rect.centery = self.hitbox.centery
+            if keys[pygame.K_SPACE]:
+                self.attacking = True
+                self.direction = vector()
+                self.frame_index = 0
+                self.bullet_shoot = False
 
+                match self.status.split('_')[0]:
+                    case 'left':
+                        self.bullet_direction = vector(-1, 0)
+                    case 'right':
+                        self.bullet_direction = vector(1, 0)
+                    case 'up':
+                        self.bullet_direction = vector(0, -1)
+                    case 'down':
+                        self.bullet_direction = vector(0, 1)
+                        self.bullet_direction = vector(0, 1)
+
+    def animate(self, dt):
+        current_animation = self.animations[self.status]
+
+        self.frame_index += 7 * dt
+
+        if int(self.frame_index) == 2 and self.attacking and not self.bullet_shoot:
+            bullet_start_pos = self.rect.center + self.bullet_direction * 80
+            self.create_bullet(bullet_start_pos, self.bullet_direction)
+            self.bullet_shoot = True
+
+        if self.frame_index >= len(current_animation):
+            self.frame_index = 0
+            if self.attacking:
+                self.attacking = False
+
+        self.image = current_animation[int(self.frame_index)]
 
     def update(self, dt):
         self.input()
+        self.get_status()
         self.move(dt)
+        self.animate(dt)
+
+        self.vulnerability_timer()
+
