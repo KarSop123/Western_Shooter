@@ -38,11 +38,30 @@ class Game():
         self.all_sprites = AllSprites()
         self.obstacles = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
+        self.monsters = pygame.sprite.Group()
 
         self.setup()
+        self.music = pygame.mixer.Sound('sound/music.mp3')
+        self.music.play(loops=-1)
 
     def create_bullet(self, pos, direction):
         Bullet(pos, direction, self.bullet_surf, [self.all_sprites, self.bullets])
+
+    def bullet_collision(self):
+        for obstacle in self.obstacles:
+            pygame.sprite.spritecollide(obstacle, self.bullets, True, pygame.sprite.collide_mask)
+
+        for bullet in self.bullets:
+            sprites = pygame.sprite.spritecollide(bullet, self.monsters, False, pygame.sprite.collide_mask)
+            if sprites:
+                bullet.kill()
+                for sprite in sprites:
+                    sprite.damage()
+
+
+        if pygame.sprite.spritecollide(self.player, self.bullets, True, pygame.sprite.collide_mask):
+            self.player.damage()
+
 
     def setup(self):
         tmx_map = load_pygame('data/map.tmx')
@@ -63,17 +82,18 @@ class Game():
             if obj.name == 'Coffin':
                 self.coffin = Coffin(
                     pos=(obj.x, obj.y),
-                    groups=self.all_sprites,
+                    groups=(self.all_sprites, self.monsters),
                     path=PATHS['coffin'],
                     collision_sprites=self.obstacles,
                     player=self.player)
             if obj.name == 'Cactus':
                 self.cactus = Cactus(
                     pos=(obj.x, obj.y),
-                    groups=self.all_sprites,
+                    groups=(self.all_sprites, self.monsters),
                     path=PATHS['cactus'],
                     collision_sprites=self.obstacles,
-                    player=self.player)
+                    player=self.player,
+                    create_bullet=self.create_bullet)
 
     def run(self):
         while True:
@@ -86,6 +106,7 @@ class Game():
 
             # update groups
             self.all_sprites.update(dt)
+            self.bullet_collision()
 
             # draw groups
             self.all_sprites.customize_draw(self.player)
