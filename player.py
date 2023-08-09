@@ -77,10 +77,10 @@ class Player(Entity):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-        def check_dead(self):
-            if self.health <= 0:
-                pygame.quit()
-                sys.exit()
+    def check_dead(self):
+        if self.health <= 0:
+            pygame.quit()
+            sys.exit()
 
     def update(self, dt):
         self.input()

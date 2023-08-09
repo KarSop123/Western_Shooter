@@ -32,7 +32,14 @@ class Game():
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Western Shooter")
         self.clock = pygame.time.Clock()
-        self.bullet_surf = pygame.image.load('graphics/other/particle.png').convert_alpha()
+        self.special_graphic = False
+
+        if self.special_graphic:
+            self.can_rotate = True
+            self.bullet_surf = pygame.image.load('graphics/other/adolf.png').convert_alpha()
+        else:
+            self.can_rotate = False
+            self.bullet_surf = pygame.image.load('graphics/other/particle.png').convert_alpha()
 
         # groups
         self.all_sprites = AllSprites()
@@ -42,10 +49,11 @@ class Game():
 
         self.setup()
         self.music = pygame.mixer.Sound('sound/music.mp3')
+        self.music.set_volume(0.5)
         self.music.play(loops=-1)
 
     def create_bullet(self, pos, direction):
-        Bullet(pos, direction, self.bullet_surf, [self.all_sprites, self.bullets])
+        Bullet(pos, direction,self.can_rotate, self.bullet_surf, [self.all_sprites, self.bullets])
 
     def bullet_collision(self):
         for obstacle in self.obstacles:
@@ -99,7 +107,7 @@ class Game():
         while True:
 
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == pygame.QUIT or len(self.monsters) == 0:
                     pygame.quit()
                     sys.exit()
             dt = self.clock.tick() / 1000

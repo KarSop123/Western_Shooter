@@ -32,10 +32,15 @@ class Entity(pygame.sprite.Sprite):
         self.hit_time = None
 
         #sound
-        self.hit_sound = pygame.mixer.Sound('sound/hit.mp3')
-        self.hit_sound.set_volume(0.2)
-        self.shoot_sound = pygame.mixer.Sound('sound/bullet.wav')
-        self.shoot_sound.set_volume(0.3)
+        self.special_sound = False
+        if self.special_sound:
+            self.shoot_sound = pygame.mixer.Sound('sound/adolf.mp3')
+            self.hit_sound = pygame.mixer.Sound('sound/adolfhit.mp3')
+        else:
+            self.shoot_sound = pygame.mixer.Sound('sound/bullet.wav')
+            self.shoot_sound.set_volume(0.3)
+            self.hit_sound = pygame.mixer.Sound('sound/hit.mp3')
+            self.hit_sound.set_volume(0.2)
 
     def blink(self):
         if not self.is_vulnerable:
