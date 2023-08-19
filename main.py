@@ -32,7 +32,7 @@ class Game():
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Western Shooter")
         self.clock = pygame.time.Clock()
-        self.special_graphic = False
+        self.special_graphic = True
 
         if self.special_graphic:
             self.can_rotate = True

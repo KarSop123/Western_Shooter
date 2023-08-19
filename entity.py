@@ -32,13 +32,13 @@ class Entity(pygame.sprite.Sprite):
         self.hit_time = None
 
         #sound
-        self.special_sound = False
+        self.special_sound = True
         if self.special_sound:
             self.shoot_sound = pygame.mixer.Sound('sound/adolf.mp3')
             self.hit_sound = pygame.mixer.Sound('sound/adolfhit.mp3')
         else:
             self.shoot_sound = pygame.mixer.Sound('sound/bullet.wav')
-            self.shoot_sound.set_volume(0.3)
+            self.shoot_sound.set_volume(0.35)
             self.hit_sound = pygame.mixer.Sound('sound/hit.mp3')
             self.hit_sound.set_volume(0.2)
 
